@@ -229,9 +229,12 @@ app = FastAPI(lifespan=lifespan)
 
 @app.post(WEBHOOK_PATH)
 async def telegram_webhook(request: Request) -> PlainTextResponse:
-    data = await request.json()
-    update = Update(**data)
-    await dp.feed_update(bot, update)
+    try:
+        data = await request.json()
+        update = Update.model_validate(data)
+        await dp.feed_update(bot, update)
+    except Exception:
+        logger.exception("Failed to process update")
     return PlainTextResponse("ok")
 
 
